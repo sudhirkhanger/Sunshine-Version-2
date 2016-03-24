@@ -77,6 +77,7 @@ public class DetailActivity extends ActionBarActivity {
 
     private Intent createShareIntent() {
         myShareIntent = new Intent(Intent.ACTION_SEND);
+//        myShareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         myShareIntent.setType("text/*");
         myShareIntent.putExtra(Intent.EXTRA_TEXT,
                 ((this.getIntent()).getStringExtra(Intent.EXTRA_TEXT)) + " #SunshineApp");
