@@ -37,9 +37,9 @@ public class WeatherProvider extends ContentProvider {
 
     private static final SQLiteQueryBuilder sWeatherByLocationSettingQueryBuilder;
 
-    static{
+    static {
         sWeatherByLocationSettingQueryBuilder = new SQLiteQueryBuilder();
-        
+
         //This is an inner join which looks like
         //weather INNER JOIN location ON weather.location_id = location._id
         sWeatherByLocationSettingQueryBuilder.setTables(
@@ -53,12 +53,12 @@ public class WeatherProvider extends ContentProvider {
 
     //location.location_setting = ?
     private static final String sLocationSettingSelection =
-            WeatherContract.LocationEntry.TABLE_NAME+
+            WeatherContract.LocationEntry.TABLE_NAME +
                     "." + WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? ";
 
     //location.location_setting = ? AND date >= ?
     private static final String sLocationSettingWithStartDateSelection =
-            WeatherContract.LocationEntry.TABLE_NAME+
+            WeatherContract.LocationEntry.TABLE_NAME +
                     "." + WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND " +
                     WeatherContract.WeatherEntry.COLUMN_DATE + " >= ? ";
 
@@ -177,8 +177,7 @@ public class WeatherProvider extends ContentProvider {
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
             // "weather/*/*"
-            case WEATHER_WITH_LOCATION_AND_DATE:
-            {
+            case WEATHER_WITH_LOCATION_AND_DATE: {
                 retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
                 break;
             }
@@ -234,8 +233,16 @@ public class WeatherProvider extends ContentProvider {
             case WEATHER: {
                 normalizeDate(values);
                 long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, values);
-                if ( _id > 0 )
+                if (_id > 0)
                     returnUri = WeatherContract.WeatherEntry.buildWeatherUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case LOCATION: {
+                long _id = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = WeatherContract.LocationEntry.buildLocationUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -260,7 +267,29 @@ public class WeatherProvider extends ContentProvider {
         // Oh, and you should notify the listeners here.
 
         // Student: return the actual rows deleted
-        return 0;
+
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        int deleteCount = 0;
+
+        switch (match) {
+            case WEATHER: {
+                deleteCount = db.delete(WeatherContract.WeatherEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs);
+                break;
+            }
+            case LOCATION: {
+                deleteCount = db.delete(WeatherContract.LocationEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs);
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return deleteCount;
     }
 
     private void normalizeDate(ContentValues values) {
@@ -276,7 +305,30 @@ public class WeatherProvider extends ContentProvider {
             Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         // Student: This is a lot like the delete function.  We return the number of rows impacted
         // by the update.
-        return 0;
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        int updateCount = 0;
+
+        switch (match) {
+            case WEATHER: {
+                updateCount = db.update(WeatherContract.WeatherEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+            }
+            case LOCATION: {
+                updateCount = db.update(WeatherContract.LocationEntry.TABLE_NAME,
+                        values,
+                        selection,
+                        selectionArgs);
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        return updateCount;
     }
 
     @Override
