@@ -61,7 +61,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     /* The date/time conversion code is going to be moved outside the asynctask later,
      * so for convenience we're breaking it out into its own method now.
      */
-    private String getReadableDateString(long time){
+    private String getReadableDateString(long time) {
         // Because the API returns a unix timestamp (measured in seconds),
         // it must be converted to milliseconds in order to be converted to valid date.
         Date date = new Date(time);
@@ -103,9 +103,9 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
      * Helper method to handle insertion of a new location in the weather database.
      *
      * @param locationSetting The location string used to request updates from the server.
-     * @param cityName A human-readable city name, e.g "Mountain View"
-     * @param lat the latitude of the city
-     * @param lon the longitude of the city
+     * @param cityName        A human-readable city name, e.g "Mountain View"
+     * @param lat             the latitude of the city
+     * @param lon             the longitude of the city
      * @return the row ID of the added location.
      */
     long addLocation(String locationSetting, String cityName, double lat, double lon) {
@@ -149,6 +149,11 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         return locationId;
     }
 
+    int bulkInsert(Uri uri, ContentValues[] contentValues) {
+        return mContext.getContentResolver().bulkInsert(uri,
+                contentValues);
+    }
+
     /*
         Students: This code will allow the FetchWeatherTask to continue to return the strings that
         the UX expects so that we can continue to test the application even once we begin using
@@ -157,7 +162,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     String[] convertContentValuesToUXFormat(Vector<ContentValues> cvv) {
         // return strings to keep UI functional for now
         String[] resultStrs = new String[cvv.size()];
-        for ( int i = 0; i < cvv.size(); i++ ) {
+        for (int i = 0; i < cvv.size(); i++) {
             ContentValues weatherValues = cvv.elementAt(i);
             String highAndLow = formatHighLows(
                     weatherValues.getAsDouble(WeatherEntry.COLUMN_MAX_TEMP),
@@ -173,7 +178,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     /**
      * Take the String representing the complete forecast in JSON Format and
      * pull out the data we need to construct the Strings needed for the wireframes.
-     *
+     * <p/>
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
@@ -246,7 +251,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             // now we work exclusively in UTC
             dayTime = new Time();
 
-            for(int i = 0; i < weatherArray.length(); i++) {
+            for (int i = 0; i < weatherArray.length(); i++) {
                 // These are the values that will be collected.
                 long dateTime;
                 double pressure;
@@ -264,7 +269,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
                 JSONObject dayForecast = weatherArray.getJSONObject(i);
 
                 // Cheating to convert this to UTC time, which is what we want anyhow
-                dateTime = dayTime.setJulianDay(julianStartDay+i);
+                dateTime = dayTime.setJulianDay(julianStartDay + i);
 
                 pressure = dayForecast.getDouble(OWM_PRESSURE);
                 humidity = dayForecast.getInt(OWM_HUMIDITY);
@@ -301,8 +306,10 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             }
 
             // add to database
-            if ( cVVector.size() > 0 ) {
+            if (cVVector.size() > 0) {
                 // Student: call bulkInsert to add the weatherEntries to the database here
+                bulkInsert(WeatherEntry.CONTENT_URI,
+                        );
             }
 
             // Sort order:  Ascending, by date.
@@ -438,7 +445,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     protected void onPostExecute(String[] result) {
         if (result != null && mForecastAdapter != null) {
             mForecastAdapter.clear();
-            for(String dayForecastStr : result) {
+            for (String dayForecastStr : result) {
                 mForecastAdapter.add(dayForecastStr);
             }
             // New data is back from the server.  Hooray!
