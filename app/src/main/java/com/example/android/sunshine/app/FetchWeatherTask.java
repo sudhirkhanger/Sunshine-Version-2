@@ -308,8 +308,6 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
             // add to database
             if (cVVector.size() > 0) {
                 // Student: call bulkInsert to add the weatherEntries to the database here
-                bulkInsert(WeatherEntry.CONTENT_URI,
-                        );
             }
 
             // Sort order:  Ascending, by date.
