@@ -79,8 +79,8 @@ public class WeatherProvider extends ContentProvider {
             selection = sLocationSettingSelection;
             selectionArgs = new String[]{locationSetting};
         } else {
-            selectionArgs = new String[]{locationSetting, Long.toString(startDate)};
             selection = sLocationSettingWithStartDateSelection;
+            selectionArgs = new String[]{locationSetting, Long.toString(startDate)};
         }
 
         return sWeatherByLocationSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
